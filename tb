@@ -1,0 +1,23 @@
+// Code your testbench here
+// or browse Examples
+`timescale 1ns/1ps
+module tb_spi_master;
+
+reg clk = 0, rst = 0, start = 0;
+reg [7:0] mosi_data = 8'hA5;
+wire sclk, mosi, cs, done;
+
+spi_master uut (.clk(clk), .rst(rst), .start(start), .mosi_data(mosi_data), .sclk(sclk), .mosi(mosi), .cs(cs), .done(done));
+
+always #5 clk = ~clk;
+
+initial begin
+    $dumpfile("spi.vcd");
+    $dumpvars(0, tb_spi_master);
+    
+    rst = 1; #20; rst = 0;
+    #10 start = 1; #10 start = 0;
+    #200 $finish;
+end
+
+endmodule
