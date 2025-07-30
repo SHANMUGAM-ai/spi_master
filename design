@@ -1,0 +1,50 @@
+// Code your design here
+module spi_master (
+    input clk,
+    input rst,
+    input start,
+    input [7:0] mosi_data,
+    output reg sclk,
+    output reg mosi,
+    output reg cs,
+    output reg done
+);
+
+    reg [2:0] bit_cnt;
+    reg [7:0] shift;
+
+    reg [1:0] state;
+    parameter IDLE = 0, TRANSFER = 1, DONE = 2;
+
+    always @(posedge clk or posedge rst) begin
+        if (rst) begin
+            sclk <= 0; mosi <= 0; cs <= 1; done <= 0;
+            state <= IDLE;
+        end else begin
+            case (state)
+                IDLE: begin
+                    cs <= 1; done <= 0;
+                    if (start) begin
+                        shift <= mosi_data;
+                        bit_cnt <= 7;
+                        cs <= 0;
+                        state <= TRANSFER;
+                    end
+                end
+                TRANSFER: begin
+                    sclk <= ~sclk;
+                    if (sclk == 0) begin
+                        mosi <= shift[bit_cnt];
+                        if (bit_cnt == 0) state <= DONE;
+                        else bit_cnt <= bit_cnt - 1;
+                    end
+                end
+                DONE: begin
+                    cs <= 1; done <= 1; sclk <= 0;
+                    state <= IDLE;
+                end
+            endcase
+        end
+    end
+
+endmodule
